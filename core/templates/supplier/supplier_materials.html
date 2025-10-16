@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-extrabold text-yellow-700 flex items-center gap-3">
+            <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+            </svg>
+            My Materials
+        </h1>
+        <a href="{% url 'supplier_add_material' %}"
+           class="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-900 text-white px-5 py-2 rounded font-bold shadow hover:from-yellow-500 hover:to-blue-800 transition">
+           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+               <path d="M12 4v16m8-8H4"/>
+           </svg>
+           Add New Material
+        </a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for material in materials %}
+        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-2xl shadow-xl border border-yellow-100 p-5 flex flex-col hover:shadow-2xl transition">
+            <div class="relative mb-4">
+                {% if material.image %}
+                    <img src="{{ material.image.url }}" alt="{{ material.name }}" class="h-44 w-full object-cover rounded-xl border-2 border-yellow-200 shadow">
+                {% else %}
+                    <div class="h-44 w-full flex items-center justify-center bg-yellow-100 rounded-xl border-2 border-yellow-200 shadow">
+                        <svg class="h-14 w-14 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+                        </svg>
+                    </div>
+                {% endif %}
+                <span class="absolute top-2 left-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider shadow">{{ material.category }}</span>
+            </div>
+            <h2 class="text-xl font-extrabold mb-1 text-yellow-700">{{ material.name }}</h2>
+            <div class="text-sm text-gray-600 mb-2 font-medium">{{ material.description|truncatewords:15 }}</div>
+            <div class="mt-2 mb-2 flex items-center justify-between">
+                <span class="text-lg text-orange-700 font-extrabold">KSh {{ material.unit_price }}</span>
+                <span class="inline-flex items-center gap-1 text-green-600 font-bold text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+                    {{ material.stock_level }} in stock
+                </span>
+            </div>
+            <div class="flex gap-2 mt-auto">
+                <a href="{% url 'supplier_material_detail' material.id %}" class="inline-flex items-center gap-1 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-xs">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12H3m0 0l4-4m-4 4l4 4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Details
+                </a>
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-span-3 text-center text-gray-500 py-16">
+                <svg class="w-14 h-14 mx-auto mb-3 text-yellow-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+                </svg>
+                No materials listed yet.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

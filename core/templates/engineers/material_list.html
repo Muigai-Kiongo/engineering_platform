@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto mt-8">
+    <div class="flex items-center gap-4 mb-8">
+        <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-14 w-14">
+            <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M3 17v-2a9 9 0 0118 0v2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 3v14" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7.5 17.5l.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16.5 17.5l-.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </span>
+        <h1 class="text-3xl font-extrabold text-yellow-700 tracking-wide drop-shadow-lg">Browse Construction Materials</h1>
+    </div>
+    <form method="get" class="flex mb-8 gap-4 items-center bg-white rounded-xl shadow px-6 py-4 border border-yellow-100">
+        <input type="text" name="q" value="{{ query }}" class="w-64 px-4 py-2 rounded-lg border-2 border-yellow-200 focus:outline-orange-400 focus:border-orange-400 bg-white text-yellow-900 font-medium" placeholder="Search materials...">
+        <select name="category" class="px-4 py-2 rounded-lg border-2 border-yellow-200 focus:outline-orange-400 focus:border-orange-400 bg-white text-yellow-900 font-medium">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white px-6 py-2 rounded-lg font-bold shadow-lg border border-yellow-300 transition">Search</button>
+    </form>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for material in materials %}
+        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-2xl shadow-xl border border-yellow-100 p-5 flex flex-col hover:shadow-2xl transition">
+            <div class="relative mb-4">
+                {% if material.image %}
+                    <img src="{{ material.image.url }}" alt="{{ material.name }}" class="h-44 w-full object-cover rounded-xl border-2 border-yellow-200 shadow">
+                {% else %}
+                    <div class="h-44 w-full flex items-center justify-center bg-yellow-100 rounded-xl border-2 border-yellow-200 shadow">
+                        <svg class="h-14 w-14 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path d="M3 17v-2a9 9 0 0118 0v2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 3v14" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7.5 17.5l.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16.5 17.5l-.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                {% endif %}
+                <span class="absolute top-2 left-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider shadow">{{ material.category }}</span>
+            </div>
+            <h2 class="text-xl font-extrabold mb-1 text-yellow-700">{{ material.name }}</h2>
+            <div class="text-sm text-gray-600 mb-1 font-medium">{{ material.description|truncatewords:15 }}</div>
+            <div class="mt-4 mb-3 flex items-center justify-between">
+                <span class="text-lg text-orange-700 font-extrabold">KSh {{ material.unit_price }}</span>
+                <span class="inline-flex items-center gap-1 text-green-600 font-bold text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+                    {{ material.stock_level }} in stock
+                </span>
+            </div>
+            <div class="flex gap-2 mt-auto">
+                <a href="{% url 'material_detail' material.id %}" class="inline-flex items-center gap-1 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-xs">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12H3m0 0l4-4m-4 4l4 4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    View
+                </a>
+                <a href="{% url 'place_order' material.id %}" class="inline-flex items-center gap-1 bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow border border-yellow-300 transition text-xs">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17v-2a9 9 0 0118 0v2"/><path d="M12 3v14"/><path d="M7.5 17.5l.5-7"/><path d="M16.5 17.5l-.5-7"/></svg>
+                    Order
+                </a>
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-span-3 text-center text-gray-500 py-16">
+                <svg class="w-14 h-14 mx-auto mb-3 text-yellow-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M3 17v-2a9 9 0 0118 0v2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 3v14" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7.5 17.5l.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16.5 17.5l-.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                No materials found.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10">
+    <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+            <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-10 w-10">
+                <svg class="h-6 w-6 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+                </svg>
+            </span>
+            <h1 class="text-2xl font-extrabold text-yellow-700 drop-shadow-lg tracking-wide">Supplier Reviews</h1>
+        </div>
+        {% if reviews %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for review in reviews %}
+                <div class="bg-white rounded-xl border border-yellow-100 p-5 shadow flex flex-col">
+                    <div class="flex items-center mb-3">
+                        <span class="font-semibold text-blue-900 mr-2">{{ review.engineer.user.username }}</span>
+                        <span class="flex items-center gap-1 text-yellow-500 font-bold ml-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09L5.317 12.18 1 8.09l6.09-.88L10 2l2.91 5.21 6.09.88-4.317 4.09 1.195 5.91z"/></svg>
+                            {{ review.rating }}
+                        </span>
+                        <span class="ml-auto text-xs text-gray-400">{{ review.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <p class="text-gray-700 text-sm">{{ review.feedback }}</p>
+                </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center py-8">
+            <svg class="w-10 h-10 text-yellow-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+            </svg>
+            <p class="text-gray-500 font-medium mb-1">No reviews received yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto mt-12">
+    <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-8">
+        <div class="flex items-center gap-3 mb-8">
+            <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-12 w-12">
+                <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                    <path d="M9 10h.01"/>
+                    <path d="M15 10h.01"/>
+                </svg>
+            </span>
+            <h1 class="text-2xl font-extrabold text-yellow-700 drop-shadow-lg tracking-wide">Supplier Profile</h1>
+        </div>
+        <div class="bg-white rounded-lg border border-yellow-100 p-6 shadow mb-4">
+            <div class="mb-3 flex items-center gap-2">
+                <span class="font-bold text-blue-900">Company Name:</span>
+                <span class="text-orange-700 font-semibold">{{ supplier.company_name }}</span>
+            </div>
+            {% if supplier.description %}
+            <div class="mb-3 flex items-center gap-2">
+                <span class="font-bold text-blue-900">Description:</span>
+                <span class="text-gray-700">{{ supplier.description }}</span>
+            </div>
+            {% endif %}
+            <div class="mb-3 flex items-center gap-2">
+                <span class="font-bold text-blue-900">Verified:</span>
+                {% if supplier.verified %}
+                    <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Verified</span>
+                {% else %}
+                    <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Unverified</span>
+                {% endif %}
+            </div>
+            <div class="mb-3 flex items-center gap-2">
+                <span class="font-bold text-blue-900">Registration Date:</span>
+                <span class="text-gray-700">{{ supplier.registration_date|date:"M d, Y" }}</span>
+            </div>
+            <div class="mb-3 flex items-center gap-2">
+                <span class="font-bold text-blue-900">Average Rating:</span>
+                <span class="flex items-center gap-1 text-yellow-500 font-bold">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09L5.317 12.18 1 8.09l6.09-.88L10 2l2.91 5.21 6.09.88-4.317 4.09 1.195 5.91z"/></svg>
+                    {{ supplier.rating|default:"-" }}
+                </span>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg border border-yellow-100 p-6 shadow flex flex-col md:flex-row gap-7">
+            <div class="flex-1">
+                <h2 class="font-bold text-orange-700 mb-3">Materials Listed</h2>
+                <ul class="list-disc ml-6">
+                    {% for material in supplier.materials.all %}
+                        <li>
+                            <a href="{% url 'supplier_material_detail' material.id %}" class="text-blue-900 hover:text-blue-700 font-semibold">
+                                {{ material.name }}
+                            </a>
+                            <span class="ml-2 text-xs text-gray-600">Stock: {{ material.stock_level }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="text-gray-400">No materials listed.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="flex-1">
+                <h2 class="font-bold text-orange-700 mb-3">Recent Reviews</h2>
+                <div class="space-y-2">
+                    {% for review in supplier.reviews.all|slice:":3" %}
+                        <div class="rounded-md bg-yellow-50 p-3 border border-yellow-100 shadow">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-blue-900 font-semibold">{{ review.engineer.user.username }}</span>
+                                <span class="flex items-center gap-1 text-yellow-500 font-bold">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09L5.317 12.18 1 8.09l6.09-.88L10 2l2.91 5.21 6.09.88-4.317 4.09 1.195 5.91z"/></svg>
+                                    {{ review.rating }}
+                                </span>
+                                <span class="text-xs text-gray-400 ml-auto">{{ review.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="text-gray-700 text-sm">{{ review.feedback }}</div>
+                        </div>
+                    {% empty %}
+                        <div class="text-gray-400">No reviews yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

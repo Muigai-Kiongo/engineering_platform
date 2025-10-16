@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8">
+    <div class="flex items-center gap-4 mb-8">
+        <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-14 w-14">
+            <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+            </svg>
+        </span>
+        <h1 class="text-3xl font-extrabold text-yellow-700 tracking-wide drop-shadow-lg">Welcome, {{ supplier.company_name|title }}!</h1>
+        {% if supplier.verified %}
+            <span class="ml-4 px-3 py-1 bg-green-100 text-green-800 rounded-full font-bold text-xs shadow">Verified Supplier</span>
+        {% else %}
+            <span class="ml-4 px-3 py-1 bg-red-100 text-red-800 rounded-full font-bold text-xs shadow">Unverified</span>
+        {% endif %}
+        <a href="{% url 'supplier_profile' %}" class="ml-auto bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-xs">
+            <svg class="w-4 h-4 inline text-white mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                <path d="M9 10h.01"/>
+                <path d="M15 10h.01"/>
+            </svg>
+            My Profile
+        </a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6 flex flex-col items-center">
+            <div class="text-lg font-bold text-orange-700 mb-2">Materials Listed</div>
+            <div class="text-2xl font-extrabold text-yellow-700">{{ materials|length }}</div>
+            <a href="{% url 'supplier_materials' %}" class="mt-2 text-xs text-blue-700 font-bold hover:underline">View All</a>
+            <a href="{% url 'supplier_add_material' %}" class="mt-2 inline-block bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-900 text-white px-3 py-1 rounded font-bold shadow hover:from-yellow-500 hover:to-blue-800 transition">
+                + Add Material
+            </a>
+        </div>
+        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6 flex flex-col items-center">
+            <div class="text-lg font-bold text-orange-700 mb-2">Orders Received</div>
+            <div class="text-2xl font-extrabold text-yellow-700">{{ recent_orders|length }}</div>
+            <a href="{% url 'supplier_orders' %}" class="mt-2 text-xs text-blue-700 font-bold hover:underline">View All</a>
+        </div>
+        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6 flex flex-col items-center">
+            <div class="text-lg font-bold text-orange-700 mb-2">Avg. Rating</div>
+            <div class="text-2xl font-extrabold text-yellow-700">{{ avg_rating }}</div>
+            <a href="{% url 'supplier_reviews' %}" class="mt-2 text-xs text-blue-700 font-bold hover:underline">See Reviews</a>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow border border-yellow-100 p-8">
+        <h2 class="text-xl font-bold text-blue-900 mb-4">Recent Orders</h2>
+        {% if recent_orders %}
+            <div class="overflow-x-auto rounded-lg border border-yellow-100 bg-white mb-2 shadow">
+                <table class="min-w-full divide-y divide-yellow-100">
+                    <thead>
+                        <tr class="bg-yellow-50">
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Order #</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Material</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Qty</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-yellow-50">
+                        {% for order in recent_orders %}
+                        <tr class="hover:bg-yellow-100 transition">
+                            <td class="px-4 py-2 text-sm font-bold text-yellow-700">#{{ order.id }}</td>
+                            <td class="px-4 py-2 text-sm">{{ order.material.name }}</td>
+                            <td class="px-4 py-2 text-sm">{{ order.quantity }}</td>
+                            <td class="px-4 py-2 text-sm">
+                                <span class="inline-block px-2 py-1 rounded-full 
+                                    {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                                    {% elif order.status == 'dispatched' %}bg-blue-100 text-blue-800
+                                    {% elif order.status == 'confirmed' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ order.status|title }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-sm">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-gray-500 py-8 text-center">No recent orders yet.</div>
+        {% endif %}
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gradient-to-br from-blue-50 via-yellow-50 to-orange-50 rounded-xl shadow-xl border border-blue-200 p-6">
+            <h2 class="text-lg font-bold text-blue-900 mb-3">Recent Reviews</h2>
+            {% with supplier.reviews.all|slice:":3" as recent_reviews %}
+            {% if recent_reviews %}
+            <div class="space-y-3">
+                {% for review in recent_reviews %}
+                    <div class="bg-yellow-50 border border-yellow-100 rounded-lg p-3 shadow">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-semibold text-blue-900">{{ review.engineer.user.username }}</span>
+                            <span class="flex items-center gap-1 text-yellow-500 font-bold">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09L5.317 12.18 1 8.09l6.09-.88L10 2l2.91 5.21 6.09.88-4.317 4.09 1.195 5.91z"/></svg>
+                                {{ review.rating }}
+                            </span>
+                            <span class="text-xs text-gray-400 ml-auto">{{ review.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="text-gray-700 text-sm">{{ review.feedback }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="text-gray-400">No reviews yet.</div>
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6">
+            <h2 class="text-lg font-bold text-blue-900 mb-3">Quick Actions</h2>
+            <div class="flex flex-col gap-4">
+                <a href="{% url 'supplier_add_material' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-900 text-white px-4 py-2 rounded font-bold shadow hover:from-yellow-500 hover:to-blue-800 transition">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add New Material
+                </a>
+                <a href="{% url 'supplier_materials' %}" class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded font-bold shadow transition">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 7V4a1 1 0 011-1h2a1 1 0 011 1v3H4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4z"></path>
+                        <path d="M4 7v10a1 1 0 001 1h2a1 1 0 001-1V7m7 0v10a1 1 0 001 1h2a1 1 0 001-1V7m-7 0v10M3 17h18"></path>
+                    </svg>
+                    View My Materials
+                </a>
+                <a href="{% url 'supplier_orders' %}" class="inline-flex items-center gap-2 bg-yellow-700 hover:bg-orange-700 text-white px-4 py-2 rounded font-bold shadow transition">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 17l4 4 4-4m-4-5v9"></path>
+                    </svg>
+                    View Orders Received
+                </a>
+                <a href="{% url 'supplier_reviews' %}" class="inline-flex items-center gap-2 bg-orange-700 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold shadow transition">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                        <path d="M9 10h.01"/>
+                        <path d="M15 10h.01"/>
+                    </svg>
+                    See My Reviews
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

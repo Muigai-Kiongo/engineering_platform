@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto mt-10">
+    <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+            <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-10 w-10">
+                <svg class="h-6 w-6 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+                </svg>
+            </span>
+            <h1 class="text-2xl font-extrabold text-yellow-700 drop-shadow-lg tracking-wide">Review Supplier</h1>
+        </div>
+        <div class="mb-6 bg-white rounded-lg border border-yellow-100 shadow p-5">
+            <div class="mb-2 flex items-center gap-2">
+                <span class="font-semibold text-blue-900">Supplier:</span>
+                <span class="font-bold text-orange-700">{{ supplier.company_name }}</span>
+            </div>
+        </div>
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="mb-6">
+                {{ form.non_field_errors }}
+                <label for="id_rating" class="block font-bold text-yellow-700 mb-2 tracking-wide">Rating (1-5)</label>
+                {{ form.rating }}
+            </div>
+            <div class="mb-6">
+                <label for="id_feedback" class="block font-bold text-yellow-700 mb-2 tracking-wide">Feedback</label>
+                {{ form.feedback }}
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white py-2 rounded-lg font-bold shadow-lg border border-yellow-300 transition">
+                Submit Review
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

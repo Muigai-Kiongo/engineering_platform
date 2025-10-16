@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto mt-8">
+    <h1 class="text-3xl font-extrabold text-yellow-700 mb-8 flex items-center gap-3">
+        <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+        </svg>
+        Orders Received
+    </h1>
+    <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-8">
+        {% if orders %}
+        <div class="overflow-x-auto rounded-lg border border-yellow-100 bg-white mb-2 shadow">
+            <table class="min-w-full divide-y divide-yellow-100">
+                <thead>
+                    <tr class="bg-yellow-50">
+                        <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Order #</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Material</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Engineer</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Qty</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Total</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Status</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-yellow-50">
+                    {% for order in orders %}
+                    <tr class="hover:bg-yellow-100 transition">
+                        <td class="px-4 py-2 text-sm font-bold text-yellow-700">#{{ order.id }}</td>
+                        <td class="px-4 py-2 text-sm">{{ order.material.name }}</td>
+                        <td class="px-4 py-2 text-sm">{{ order.engineer.user.username }}</td>
+                        <td class="px-4 py-2 text-sm">{{ order.quantity }}</td>
+                        <td class="px-4 py-2 text-sm font-semibold text-blue-900">KSh {{ order.total_price }}</td>
+                        <td class="px-4 py-2 text-sm">
+                            <span class="inline-block px-2 py-1 rounded-full 
+                                {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                                {% elif order.status == 'dispatched' %}bg-blue-100 text-blue-800
+                                {% elif order.status == 'confirmed' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ order.status|title }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2 text-sm">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-gray-500 py-8 text-center">No orders received yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

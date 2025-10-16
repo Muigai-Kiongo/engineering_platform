@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engineering Digital Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Tailwind CSS CDN (for development; use npm for production) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_css %}{% endblock %}
+    <style>
+        .construction-bg {
+            background-image: url('{% static "img/construction-bg.png" %}');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Alibaba-style Header -->
+    <header class="fixed top-0 left-0 w-full h-20 bg-gradient-to-r from-yellow-600 via-orange-400 to-blue-900 flex items-center justify-between px-8 shadow-lg z-50">
+        <div class="flex items-center space-x-4">
+            <!-- Construction Helmet Icon -->
+            <span class="inline-flex items-center justify-center bg-white rounded-full border-4 border-yellow-300 shadow-lg h-12 w-12">
+                <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M3 17v-2a9 9 0 0118 0v2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 3v14" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7.5 17.5l.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16.5 17.5l-.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span class="text-white text-2xl font-extrabold tracking-wide drop-shadow-lg">BuildHub Kenya</span>
+            <span class="ml-4 px-3 py-1 bg-white/70 text-yellow-900 rounded-full font-semibold tracking-wide text-sm">Construction Materials Sourcing</span>
+        </div>
+        <div class="flex items-center gap-6 text-white">
+            <div class="hidden md:flex items-center gap-8">
+                <span class="flex items-center gap-2 text-sm font-medium">
+                    <svg class="w-5 h-5 text-yellow-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1H4a1 1 0 00-1 1zM17 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1z"></path><path d="M5 11V21h14V11"></path></svg>
+                    <span>Verified Suppliers</span>
+                </span>
+                <span class="flex items-center gap-2 text-sm font-medium">
+                    <svg class="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"></path></svg>
+                    <span>Fast Delivery</span>
+                </span>
+            </div>
+            {% if user.is_authenticated %}
+                <span>
+                    <span class="font-bold">{{ user.username }}</span>
+                    <span class="ml-1 text-xs px-2 py-1 bg-blue-900/70 rounded">{{ user.profile.role|title }}</span>
+                </span>
+                <form method='POST' action="{% url 'logout' %}" class="bg-yellow-600 hover:bg-orange-700 px-4 py-1 rounded text-white text-sm font-bold shadow inline">
+                    {% csrf_token %}
+                    <button type="submit" class="flex items-center gap-2 text-sm">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1H4a1 1 0 00-1 1zM17 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1z"></path><path d="M5 11V21h14V11"></path></svg>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="bg-yellow-600 hover:bg-orange-700 px-4 py-1 rounded text-white text-sm font-bold shadow">Login</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Alibaba-like Aside Sidebar -->
+    <aside class="fixed top-20 left-0 h-[calc(100vh-5rem)] w-64 bg-gradient-to-b from-yellow-100 via-orange-50 to-blue-100 text-blue-900 flex flex-col pt-8 z-40 shadow-lg border-r-2 border-yellow-300">
+        <div class="text-xl font-bold text-center mb-6 flex items-center justify-center gap-2">
+            <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/></svg>
+            <span>Site Menu</span>
+        </div>
+        <nav class="flex-grow">
+            <ul class="space-y-3 px-6">
+                {% if user.is_authenticated %}
+                    {% if user.profile.role == "engineer" %}
+                        <li>
+                            <a href="{% url 'engineer_dashboard' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'engineer_dashboard' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 13h18M9 21V13H15V21M9 13V3H15V13"></path></svg>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'material_list' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'material_list' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7V4a1 1 0 011-1h2a1 1 0 011 1v3H4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4z"></path><path d="M4 7v10a1 1 0 001 1h2a1 1 0 001-1V7m7 0v10a1 1 0 001 1h2a1 1 0 001-1V7m-7 0v10M3 17h18"></path></svg>
+                                Browse Materials
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'order_list' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'order_list' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"></path></svg>
+                                My Orders
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'review_supplier' supplier_id=1 %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
+                                Review Supplier
+                            </a>
+                        </li>
+                    {% elif user.profile.role == "supplier" %}
+                        <li>
+                            <a href="{% url 'supplier_dashboard' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'supplier_dashboard' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 13h18M9 21V13H15V21M9 13V3H15V13"></path></svg>
+                                Supplier Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'supplier_materials' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'supplier_materials' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7V4a1 1 0 011-1h2a1 1 0 011 1v3H4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4z"></path><path d="M4 7v10a1 1 0 001 1h2a1 1 0 001-1V7m7 0v10a1 1 0 001 1h2a1 1 0 001-1V7m-7 0v10M3 17h18"></path></svg>
+                                My Materials
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'supplier_orders' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'supplier_orders' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"></path></svg>
+                                Orders Received
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'supplier_reviews' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'supplier_reviews' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
+                                Supplier Reviews
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'supplier_profile' %}"
+                               class="flex items-center gap-2 py-2 px-3 rounded transition
+                               {% if request.resolver_match.url_name == 'supplier_profile' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
+                                My Profile
+                            </a>
+                        </li>
+                    {% else %}
+                        <!-- Optionally, add a default for unknown role -->
+                        <li>
+                            <a href="/" class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
+                                Home
+                            </a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li>
+                        <a href="{% url 'login' %}" class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100 font-bold">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
+                            Login
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'accounts:register' %}" class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100 font-bold">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
+                            Register
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        <div class="mt-auto pb-8 px-6 text-xs text-blue-800 opacity-70">
+            &copy; {{ now|date:"Y" }} BuildHub Kenya. All rights reserved.
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <main class="ml-64 pt-24 px-10 min-h-[calc(100vh-5rem)] transition-all construction-bg">
+        {% if messages %}
+            <div class="space-y-3">
+                {% for message in messages %}
+                    <div class="px-4 py-3 rounded bg-green-100 text-green-900 font-medium shadow">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </main>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
