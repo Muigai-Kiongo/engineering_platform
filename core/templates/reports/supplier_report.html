@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold text-yellow-700">Supplier Report</h1>
+    <div>
+      <a href="{{ request.path }}?format=csv{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="px-3 py-2 bg-blue-700 text-white rounded">Download CSV</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Materials</div>
+      <div class="text-2xl font-bold text-yellow-700">{{ materials_count }}</div>
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Orders</div>
+      <div class="text-2xl font-bold text-blue-900">{{ orders_count }}</div>
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Total Sales</div>
+      <div class="text-2xl font-bold text-green-600">KSh {{ total_sales|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="font-bold mb-2">Recent Orders</h2>
+    <ul class="divide-y">
+      {% for o in recent_orders %}
+        <li class="py-2 flex justify-between">
+          <div>#{{ o.id }} — {% if o.material %}{{ o.material.name }}{% endif %} ({{ o.quantity }})</div>
+          <div class="text-sm text-gray-500">{{ o.created_at|date:"M d, Y H:i" }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

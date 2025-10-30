@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+  <body style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color:#222">
+    <div style="max-width:600px;margin:0 auto;padding:20px;">
+      <h2 style="color:#0ea5e9">Order {{ order.id }} — Dispatched</h2>
+
+      <p>Hi{% if order.engineer and order.engineer.user %} {{ order.engineer.user.get_full_name|default:order.engineer.user.username }}{% endif %},</p>
+      <p>Your order <strong>#{{ order.id }}</strong> for <strong>{{ material.name }}</strong> has been dispatched.</p>
+
+      {% if delivery.delivery_location %}
+        <p><strong>Delivery address:</strong> {{ delivery.delivery_location }}</p>
+      {% endif %}
+
+      {% if delivery.dispatched_at %}
+        <p><strong>Dispatched at:</strong> {{ delivery.dispatched_at|date:"M d, Y H:i" }}</p>
+      {% endif %}
+
+      <p>Track updates will be posted to your account when the delivery status changes.</p>
+
+      <hr style="border:none;border-top:1px solid #eee;margin:16px 0" />
+      <p style="font-size:12px;color:#666">This message was sent by {{ site_name }}.</p>
+    </div>
+  </body>
+</html>

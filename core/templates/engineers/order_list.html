@@ -36,9 +36,34 @@
                                 {% if order.material.image %}
                                     <img src="{{ order.material.image.url }}" alt="" class="w-8 h-8 rounded border border-yellow-200 shadow-sm mr-2">
                                 {% endif %}
-                                <span>{{ order.material.name }}</span>
+                                <div>
+                                    <div>{{ order.material.name }}</div>
+                                    <div class="text-xs text-gray-400">
+                                        {# Category fallback: primary -> first M2M -> legacy text -> Uncategorized #}
+                                        {% if order.material.primary_category %}
+                                            {{ order.material.primary_category.name }}
+                                        {% elif order.material.categories.all %}
+                                            {% for c in order.material.categories.all %}
+                                                {% if forloop.first %}{{ c.name }}{% endif %}
+                                            {% endfor %}
+                                        {% elif order.material.category %}
+                                            {{ order.material.category }}
+                                        {% else %}
+                                            Uncategorized
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </td>
-                            <td class="px-4 py-2 text-sm">{{ order.supplier.company_name }}</td>
+                            <td class="px-4 py-2 text-sm">
+                                {# supplier is a SupplierProfile; prefer company_name, fallback safely #}
+                                {% if order.supplier.company_name %}
+                                    {{ order.supplier.company_name }}
+                                {% elif order.supplier.profile and order.supplier.profile.user %}
+                                    {{ order.supplier.profile.user.username }}
+                                {% else %}
+                                    Supplier
+                                {% endif %}
+                            </td>
                             <td class="px-4 py-2 text-sm">{{ order.quantity }}</td>
                             <td class="px-4 py-2 text-sm font-semibold text-blue-900">KSh {{ order.total_price }}</td>
                             <td class="px-4 py-2 text-sm">
@@ -62,6 +87,22 @@
                     </tbody>
                 </table>
             </div>
+            {# optional pagination controls if orders is a Page object #}
+            {% if orders.has_other_pages %}
+            <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-gray-600">
+                    Showing {{ orders.start_index }} - {{ orders.end_index }} of {{ orders.paginator.count }}
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if orders.has_previous %}
+                        <a href="?page={{ orders.previous_page_number }}" class="px-3 py-1 bg-yellow-100 rounded">Previous</a>
+                    {% endif %}
+                    {% if orders.has_next %}
+                        <a href="?page={{ orders.next_page_number }}" class="px-3 py-1 bg-yellow-100 rounded">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         {% else %}
             <div class="flex flex-col items-center py-8">
                 <svg class="w-10 h-10 text-yellow-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">

@@ -126,3 +126,26 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'role_redirect'
 LOGOUT_REDIRECT_URL = 'login'
+
+
+# Email settings (SMTP using Gmail)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Hard-coded credentials (for your dev/test environment)
+EMAIL_HOST_USER = "kabochakiongo@gmail.com"
+EMAIL_HOST_PASSWORD = "qmtgccnmfxhtodnl"  # put your app password here
+SITE_NAME = "BuildHub Kenya"
+
+# From header shown to recipients
+DEFAULT_FROM_EMAIL = f"{SITE_NAME} <{EMAIL_HOST_USER}>"
+
+# Optional site name used in emails
+
+# Simple safety warning (optional)
+if EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
+    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+        import sys
+        print("WARNING: SMTP backend selected but EMAIL_HOST_USER/EMAIL_HOST_PASSWORD are not set.", file=sys.stderr)

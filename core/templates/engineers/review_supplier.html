@@ -10,27 +10,52 @@
             </span>
             <h1 class="text-2xl font-extrabold text-yellow-700 drop-shadow-lg tracking-wide">Review Supplier</h1>
         </div>
+
+        {# show messages if any #}
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="px-4 py-3 rounded-lg {% if message.tags %}{{ message.tags }}{% endif %} bg-white border border-yellow-100 shadow text-sm">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <div class="mb-6 bg-white rounded-lg border border-yellow-100 shadow p-5">
             <div class="mb-2 flex items-center gap-2">
                 <span class="font-semibold text-blue-900">Supplier:</span>
                 <span class="font-bold text-orange-700">{{ supplier.company_name }}</span>
             </div>
+            {% if supplier.description %}
+                <div class="text-sm text-gray-600">{{ supplier.description|truncatewords:25 }}</div>
+            {% endif %}
         </div>
-        <form method="post" class="mt-4">
+
+        <form method="post" action="{% url 'review_supplier' supplier.pk %}" class="mt-4">
             {% csrf_token %}
+            {{ form.non_field_errors }}
+
             <div class="mb-6">
-                {{ form.non_field_errors }}
                 <label for="id_rating" class="block font-bold text-yellow-700 mb-2 tracking-wide">Rating (1-5)</label>
                 {{ form.rating }}
+                {{ form.rating.errors }}
             </div>
+
             <div class="mb-6">
                 <label for="id_feedback" class="block font-bold text-yellow-700 mb-2 tracking-wide">Feedback</label>
                 {{ form.feedback }}
+                {{ form.feedback.errors }}
             </div>
+
             <button type="submit" class="w-full bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white py-2 rounded-lg font-bold shadow-lg border border-yellow-300 transition">
                 Submit Review
             </button>
         </form>
+
+        <div class="mt-4 text-center">
+            <a href="{% url 'material_list' %}" class="text-sm text-blue-700 hover:underline">← Back to materials</a>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -17,7 +17,15 @@
         <select name="category" class="px-4 py-2 rounded-lg border-2 border-yellow-200 focus:outline-orange-400 focus:border-orange-400 bg-white text-yellow-900 font-medium">
             <option value="">All Categories</option>
             {% for cat in categories %}
-                <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+                <option value="{{ cat.slug }}"
+                    {% if selected_category %}
+                        {% if selected_category.slug == cat.slug %}
+                            selected
+                        {% elif selected_category == cat.name %}
+                            selected
+                        {% endif %}
+                    {% endif %}
+                >{{ cat.name }}</option>
             {% endfor %}
         </select>
         <button type="submit" class="bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white px-6 py-2 rounded-lg font-bold shadow-lg border border-yellow-300 transition">Search</button>
@@ -38,7 +46,21 @@
                         </svg>
                     </div>
                 {% endif %}
-                <span class="absolute top-2 left-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider shadow">{{ material.category }}</span>
+                <span class="absolute top-2 left-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider shadow">
+                    {% if material.primary_category %}
+                        {{ material.primary_category.name }}
+                    {% elif material.categories.all %}
+                        {% for c in material.categories.all %}
+                            {% if forloop.first %}
+                                {{ c.name }}
+                            {% endif %}
+                        {% endfor %}
+                    {% elif material.category %}
+                        {{ material.category }}
+                    {% else %}
+                        Uncategorized
+                    {% endif %}
+                </span>
             </div>
             <h2 class="text-xl font-extrabold mb-1 text-yellow-700">{{ material.name }}</h2>
             <div class="text-sm text-gray-600 mb-1 font-medium">{{ material.description|truncatewords:15 }}</div>

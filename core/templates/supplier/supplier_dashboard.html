@@ -1,144 +1,239 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-6xl mx-auto mt-8">
-    <div class="flex items-center gap-4 mb-8">
-        <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-14 w-14">
-            <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
-            </svg>
+<div class="max-w-6xl mx-auto mt-8 space-y-6">
+    <div class="flex items-center gap-4">
+        <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-14 w-14" aria-hidden="true">
+            <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/></svg>
         </span>
-        <h1 class="text-3xl font-extrabold text-yellow-700 tracking-wide drop-shadow-lg">Welcome, {{ supplier.company_name|title }}!</h1>
-        {% if supplier.verified %}
-            <span class="ml-4 px-3 py-1 bg-green-100 text-green-800 rounded-full font-bold text-xs shadow">Verified Supplier</span>
-        {% else %}
-            <span class="ml-4 px-3 py-1 bg-red-100 text-red-800 rounded-full font-bold text-xs shadow">Unverified</span>
-        {% endif %}
-        <a href="{% url 'supplier_profile' %}" class="ml-auto bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-xs">
-            <svg class="w-4 h-4 inline text-white mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-                <path d="M9 10h.01"/>
-                <path d="M15 10h.01"/>
-            </svg>
-            My Profile
-        </a>
+
+        <div class="flex-1">
+            <h1 class="text-3xl font-extrabold text-yellow-700 tracking-wide drop-shadow-lg">
+                Welcome, {% if supplier.company_name %}{{ supplier.company_name|title }}{% else %}{{ supplier.profile.user.username|title }}{% endif %}!
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">Overview of your materials, orders and reviews</p>
+        </div>
+
+        <div class="flex gap-3 items-center">
+            {% if supplier.verified %}
+                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-bold text-xs shadow">Verified</span>
+            {% else %}
+                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full font-bold text-xs shadow">Unverified</span>
+            {% endif %}
+            <a href="{% url 'supplier_profile' %}" class="ml-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-xs">My Profile</a>
+        </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6 flex flex-col items-center">
-            <div class="text-lg font-bold text-orange-700 mb-2">Materials Listed</div>
-            <div class="text-2xl font-extrabold text-yellow-700">{{ materials|length }}</div>
-            <a href="{% url 'supplier_materials' %}" class="mt-2 text-xs text-blue-700 font-bold hover:underline">View All</a>
-            <a href="{% url 'supplier_add_material' %}" class="mt-2 inline-block bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-900 text-white px-3 py-1 rounded font-bold shadow hover:from-yellow-500 hover:to-blue-800 transition">
+
+    {# KPI cards #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 shadow border border-yellow-100">
+            <div class="text-xs font-semibold text-gray-500">Materials Listed</div>
+            <div class="text-2xl font-extrabold text-yellow-700 mt-2">{{ materials_count }}</div>
+            <div class="text-xs text-gray-400 mt-2">Active materials you have listed</div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow border border-yellow-100">
+            <div class="text-xs font-semibold text-gray-500">Orders Received</div>
+            <div class="text-2xl font-extrabold text-yellow-700 mt-2">{{ orders_count }}</div>
+            <div class="text-xs text-gray-400 mt-2">Total orders for your materials</div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow border border-yellow-100">
+            <div class="text-xs font-semibold text-gray-500">Amount Received</div>
+            <div class="text-2xl font-extrabold text-blue-900 mt-2">KSh {{ total_sales|floatformat:2 }}</div>
+            <div class="text-xs text-gray-400 mt-2">Sum of order totals</div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow border border-yellow-100">
+            <div class="text-xs font-semibold text-gray-500">Avg. Rating</div>
+            <div class="text-2xl font-extrabold text-yellow-700 mt-2">{{ avg_rating|floatformat:2 }}</div>
+            <div class="text-xs text-gray-400 mt-2">From recent engineer reviews</div>
+        </div>
+    </div>
+
+    {# Top action/search row #}
+    <div class="flex flex-col md:flex-row gap-4 items-center mb-6">
+        <form method="get" action="{% url 'supplier_materials' %}" class="flex gap-3 flex-1">
+            <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search your materials..." class="w-full px-3 py-2 rounded-lg border border-yellow-200 bg-white">
+            <select name="category" class="px-3 py-2 rounded-lg border border-yellow-200 bg-white">
+                <option value="">All categories</option>
+                {% if categories %}
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+            <button type="submit" class="px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded-lg font-semibold">Search</button>
+        </form>
+
+        <div class="flex gap-3">
+            <a href="{% url 'supplier_add_material' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-900 text-white px-4 py-2 rounded font-bold shadow">
                 + Add Material
             </a>
-        </div>
-        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6 flex flex-col items-center">
-            <div class="text-lg font-bold text-orange-700 mb-2">Orders Received</div>
-            <div class="text-2xl font-extrabold text-yellow-700">{{ recent_orders|length }}</div>
-            <a href="{% url 'supplier_orders' %}" class="mt-2 text-xs text-blue-700 font-bold hover:underline">View All</a>
-        </div>
-        <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6 flex flex-col items-center">
-            <div class="text-lg font-bold text-orange-700 mb-2">Avg. Rating</div>
-            <div class="text-2xl font-extrabold text-yellow-700">{{ avg_rating }}</div>
-            <a href="{% url 'supplier_reviews' %}" class="mt-2 text-xs text-blue-700 font-bold hover:underline">See Reviews</a>
+            <a href="{% url 'supplier_materials' %}" class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded font-bold shadow">
+                Manage
+            </a>
         </div>
     </div>
-    <div class="bg-white rounded-xl shadow border border-yellow-100 p-8">
-        <h2 class="text-xl font-bold text-blue-900 mb-4">Recent Orders</h2>
+
+    {# Low stock alert (supplier-specific) #}
+    {% if low_stock_materials %}
+        <div class="mb-6 rounded-lg border border-yellow-100 bg-yellow-50 p-4">
+            <div class="flex items-center justify-between">
+                <div class="font-semibold text-yellow-800">Low stock items <span class="text-sm text-gray-500">({{ low_stock_count }})</span></div>
+                <a href="{% url 'supplier_materials' %}?filter=low" class="text-xs text-blue-700 font-semibold">View all</a>
+            </div>
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                {% for m in low_stock_materials %}
+                    <div class="bg-white rounded p-3 border border-yellow-100 flex items-center gap-3">
+                        {% if m.image %}
+                            <img src="{{ m.image.url }}" alt="{{ m.name }}" class="w-12 h-12 object-cover rounded border border-yellow-100 shadow-sm">
+                        {% else %}
+                            <div class="w-12 h-12 flex items-center justify-center bg-yellow-100 rounded text-yellow-400">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/></svg>
+                            </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-yellow-700 truncate">{{ m.name }}</div>
+                            <div class="text-xs text-gray-400">SKU: {{ m.sku|default:"—" }}</div>
+                        </div>
+                        <div class="text-sm">
+                            <span class="inline-block px-2 py-1 rounded-full {% if m.stock_level <= 0 %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ m.stock_level }}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if low_stock_count > low_stock_materials|length %}
+                <div class="mt-2 text-xs text-blue-700">
+                    <a href="{% url 'supplier_materials' %}?filter=low">View all low stock ({{ low_stock_count }}) →</a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {# Status + top lists #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl p-4 shadow border border-yellow-100">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold text-blue-900">Order Status</h3>
+                <a href="{% url 'supplier_orders' %}" class="text-xs text-blue-700">View orders</a>
+            </div>
+            <div class="space-y-3">
+                {% for s in status_items %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="inline-block w-3 h-3 rounded-full {% if s.color == 'yellow' %}bg-yellow-400{% elif s.color == 'orange' %}bg-orange-400{% elif s.color == 'blue' %}bg-blue-400{% elif s.color == 'green' %}bg-green-400{% else %}bg-gray-400{% endif %}"></span>
+                            <div class="text-sm">{{ s.label }}</div>
+                        </div>
+                        <div class="text-sm font-bold text-gray-700">{{ s.count }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow border border-yellow-100">
+            <h3 class="text-sm font-bold text-blue-900 mb-3">Top Engineers</h3>
+            {% if top_engineers %}
+                <ul class="space-y-2 text-sm">
+                    {% for e in top_engineers %}
+                        <li class="flex items-center justify-between">
+                            <div class="text-sm text-gray-700">{{ e.engineer__user__username|default:"Engineer" }}</div>
+                            <div class="text-xs text-gray-500">{{ e.orders_count }} orders • KSh {{ e.spend|default:0|floatformat:2 }}</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="text-xs text-gray-400">No buyers yet.</div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow border border-yellow-100">
+            <h3 class="text-sm font-bold text-blue-900 mb-3">Top Materials</h3>
+            {% if top_materials %}
+                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                    {% for m in top_materials %}
+                        <li>{{ m.material__name|default:"Material" }} — {{ m.orders_count }}x</li>
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <div class="text-xs text-gray-400">No top materials yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Recent Orders table #}
+    <div class="bg-white rounded-xl shadow border border-yellow-100 p-6">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-bold text-blue-900">Recent Orders</h2>
+            <a href="{% url 'supplier_orders' %}" class="text-xs text-blue-700">See all</a>
+        </div>
+
         {% if recent_orders %}
             <div class="overflow-x-auto rounded-lg border border-yellow-100 bg-white mb-2 shadow">
                 <table class="min-w-full divide-y divide-yellow-100">
                     <thead>
                         <tr class="bg-yellow-50">
-                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Order #</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">#</th>
                             <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Material</th>
                             <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Qty</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Total</th>
                             <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Status</th>
-                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-yellow-900">When</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-yellow-50">
                         {% for order in recent_orders %}
                         <tr class="hover:bg-yellow-100 transition">
-                            <td class="px-4 py-2 text-sm font-bold text-yellow-700">#{{ order.id }}</td>
-                            <td class="px-4 py-2 text-sm">{{ order.material.name }}</td>
-                            <td class="px-4 py-2 text-sm">{{ order.quantity }}</td>
+                            <td class="px-4 py-2 text-sm font-semibold text-yellow-700">#{{ order.id }}</td>
                             <td class="px-4 py-2 text-sm">
-                                <span class="inline-block px-2 py-1 rounded-full 
-                                    {% if order.status == 'delivered' %}bg-green-100 text-green-800
-                                    {% elif order.status == 'dispatched' %}bg-blue-100 text-blue-800
-                                    {% elif order.status == 'confirmed' %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                    {{ order.status|title }}
-                                </span>
+                                {% if order.material %}{{ order.material.name }}{% else %}Material (deleted){% endif %}
                             </td>
-                            <td class="px-4 py-2 text-sm">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                            <td class="px-4 py-2 text-sm">{{ order.quantity }}</td>
+                            <td class="px-4 py-2 text-sm font-semibold text-blue-900">KSh {{ order.total_price }}</td>
+                            <td class="px-4 py-2 text-sm">
+                                <span class="inline-block px-2 py-1 rounded-full {% if order.status == 'delivered' %}bg-green-100 text-green-800{% elif order.status == 'dispatched' %}bg-blue-100 text-blue-800{% elif order.status == 'confirmed' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">{{ order.status|title }}</span>
+                            </td>
+                            <td class="px-4 py-2 text-sm">{{ order.created_at|date:"M d, Y" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         {% else %}
-            <div class="text-gray-500 py-8 text-center">No recent orders yet.</div>
+            <div class="text-gray-500 py-6 text-center">No recent orders.</div>
         {% endif %}
     </div>
 
-    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+    {# Reviews + Quick Actions #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-gradient-to-br from-blue-50 via-yellow-50 to-orange-50 rounded-xl shadow-xl border border-blue-200 p-6">
-            <h2 class="text-lg font-bold text-blue-900 mb-3">Recent Reviews</h2>
-            {% with supplier.reviews.all|slice:":3" as recent_reviews %}
+            <h3 class="text-lg font-bold text-blue-900 mb-3">Recent Reviews</h3>
             {% if recent_reviews %}
-            <div class="space-y-3">
-                {% for review in recent_reviews %}
-                    <div class="bg-yellow-50 border border-yellow-100 rounded-lg p-3 shadow">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-semibold text-blue-900">{{ review.engineer.user.username }}</span>
-                            <span class="flex items-center gap-1 text-yellow-500 font-bold">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09L5.317 12.18 1 8.09l6.09-.88L10 2l2.91 5.21 6.09.88-4.317 4.09 1.195 5.91z"/></svg>
-                                {{ review.rating }}
-                            </span>
-                            <span class="text-xs text-gray-400 ml-auto">{{ review.created_at|date:"M d, Y" }}</span>
+                <div class="space-y-3">
+                    {% for review in recent_reviews %}
+                        <div class="bg-white rounded-lg p-3 border border-yellow-100">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="font-semibold text-blue-900">{{ review.engineer.user.username }}</div>
+                                <div class="ml-auto text-xs text-gray-400">{{ review.created_at|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="text-sm text-yellow-700 font-bold">{{ review.rating }} / 5</div>
+                            <div class="text-sm text-gray-700 mt-1">{{ review.feedback|default:"(No feedback provided)" }}</div>
                         </div>
-                        <div class="text-gray-700 text-sm">{{ review.feedback }}</div>
-                    </div>
-                {% endfor %}
-            </div>
+                    {% endfor %}
+                </div>
             {% else %}
                 <div class="text-gray-400">No reviews yet.</div>
             {% endif %}
-            {% endwith %}
         </div>
+
         <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-6">
-            <h2 class="text-lg font-bold text-blue-900 mb-3">Quick Actions</h2>
-            <div class="flex flex-col gap-4">
-                <a href="{% url 'supplier_add_material' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-900 text-white px-4 py-2 rounded font-bold shadow hover:from-yellow-500 hover:to-blue-800 transition">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Add New Material
-                </a>
-                <a href="{% url 'supplier_materials' %}" class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded font-bold shadow transition">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M4 7V4a1 1 0 011-1h2a1 1 0 011 1v3H4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4z"></path>
-                        <path d="M4 7v10a1 1 0 001 1h2a1 1 0 001-1V7m7 0v10a1 1 0 001 1h2a1 1 0 001-1V7m-7 0v10M3 17h18"></path>
-                    </svg>
-                    View My Materials
-                </a>
-                <a href="{% url 'supplier_orders' %}" class="inline-flex items-center gap-2 bg-yellow-700 hover:bg-orange-700 text-white px-4 py-2 rounded font-bold shadow transition">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M8 17l4 4 4-4m-4-5v9"></path>
-                    </svg>
-                    View Orders Received
-                </a>
-                <a href="{% url 'supplier_reviews' %}" class="inline-flex items-center gap-2 bg-orange-700 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold shadow transition">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-                        <path d="M9 10h.01"/>
-                        <path d="M15 10h.01"/>
-                    </svg>
-                    See My Reviews
-                </a>
+            <h3 class="text-lg font-bold text-blue-900 mb-3">Quick Actions</h3>
+            <div class="flex flex-col gap-3">
+                <a href="{% url 'supplier_add_material' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-900 text-white px-4 py-2 rounded font-bold shadow">Add New Material</a>
+                <a href="{% url 'supplier_materials' %}" class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded font-bold shadow">Manage Materials</a>
+                <a href="{% url 'supplier_orders' %}" class="inline-flex items-center gap-2 bg-yellow-700 hover:bg-orange-700 text-white px-4 py-2 rounded font-bold shadow">View Orders</a>
+                <a href="{% url 'supplier_reviews' %}" class="inline-flex items-center gap-2 bg-orange-700 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold shadow">See Reviews</a>
             </div>
         </div>
     </div>

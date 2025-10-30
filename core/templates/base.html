@@ -3,150 +3,266 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Engineering Digital Platform</title>
+    <title>{% block page_title %}Engineering Digital Platform{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="BuildHub Kenya — construction materials sourcing and marketplace.">
+
     <!-- Tailwind CSS CDN (for development; use npm for production) -->
     <script src="https://cdn.tailwindcss.com"></script>
+
     {% block extra_css %}{% endblock %}
+
     <style>
         .construction-bg {
             background-image: url('{% static "img/construction-bg.png" %}');
             background-size: cover;
             background-position: center;
         }
+
+        /* Small utility for visually-hidden text used for screen reader labels */
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+        }
+
+        /* Sidebar collapse helpers (JS toggles 'sidebar-collapsed' on body) */
+        body.sidebar-collapsed main { margin-left: 4rem; }
+        body.sidebar-collapsed aside { width: 4rem; }
+        /* Smooth transition for layout changes */
+        aside, main { transition: width .2s ease, margin .2s ease; }
     </style>
 </head>
 <body class="bg-gray-100">
-    <!-- Alibaba-style Header -->
-    <header class="fixed top-0 left-0 w-full h-20 bg-gradient-to-r from-yellow-600 via-orange-400 to-blue-900 flex items-center justify-between px-8 shadow-lg z-50">
-        <div class="flex items-center space-x-4">
-            <!-- Construction Helmet Icon -->
-            <span class="inline-flex items-center justify-center bg-white rounded-full border-4 border-yellow-300 shadow-lg h-12 w-12">
-                <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path d="M3 17v-2a9 9 0 0118 0v2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 3v14" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M7.5 17.5l.5-7" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16.5 17.5l-.5-7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </span>
-            <span class="text-white text-2xl font-extrabold tracking-wide drop-shadow-lg">BuildHub Kenya</span>
-            <span class="ml-4 px-3 py-1 bg-white/70 text-yellow-900 rounded-full font-semibold tracking-wide text-sm">Construction Materials Sourcing</span>
+
+    <a class="sr-only" href="#main-content">Skip to content</a>
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 w-full h-20 bg-gradient-to-r from-yellow-600 via-orange-400 to-blue-900 flex items-center justify-between px-4 md:px-8 shadow-lg z-50" role="banner">
+        <div class="flex items-center gap-3">
+            <!-- Mobile: toggle sidebar -->
+            <button id="sidebar-toggle" aria-controls="site-sidebar" aria-expanded="true" aria-label="Toggle menu" class="md:hidden inline-flex items-center justify-center p-2 rounded bg-yellow-100/20 text-white mr-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+
+            <!-- Logo -->
+            <a href="{% url 'role_redirect' %}" class="flex items-center gap-3">
+                <span class="inline-flex items-center justify-center bg-white rounded-full border-4 border-yellow-300 shadow-lg h-12 w-12">
+                    <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M3 17v-2a9 9 0 0118 0v2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 3v14" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7.5 17.5l.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16.5 17.5l-.5-7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <div class="hidden sm:block">
+                    <div class="text-white text-2xl font-extrabold tracking-wide drop-shadow-lg">BuildHub Kenya</div>
+                    <div class="text-xs text-white/80">Construction Materials Sourcing</div>
+                </div>
+            </a>
         </div>
-        <div class="flex items-center gap-6 text-white">
-            <div class="hidden md:flex items-center gap-8">
-                <span class="flex items-center gap-2 text-sm font-medium">
-                    <svg class="w-5 h-5 text-yellow-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1H4a1 1 0 00-1 1zM17 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1z"></path><path d="M5 11V21h14V11"></path></svg>
-                    <span>Verified Suppliers</span>
-                </span>
-                <span class="flex items-center gap-2 text-sm font-medium">
+
+        <!-- Center area: search / breadcrumbs -->
+        <div class="flex-1 hidden lg:flex items-center justify-center px-4">
+            <form method="get" action="{% url 'material_list' %}" class="w-full max-w-2xl">
+                <label for="site-search" class="sr-only">Search materials</label>
+                <div class="relative">
+                    <input id="site-search" name="q" value="{{ request.GET.q|default_if_none:'' }}" type="search" placeholder="Search materials, suppliers or SKU..." class="w-full rounded-full pl-4 pr-32 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" aria-label="Search materials">
+                    <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full text-sm shadow">Search</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Rightside: quick status, notifications, user -->
+        <div class="flex items-center gap-4 text-white">
+            <div class="hidden md:flex items-center gap-4 text-sm text-white/90">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-yellow-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 13h18M9 21V13H15V21M9 13V3H15V13"></path>
+                    </svg>
+                    <span class="hidden sm:inline">Verified Suppliers</span>
+                </div>
+                <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"></path></svg>
-                    <span>Fast Delivery</span>
-                </span>
+                    <span class="hidden sm:inline">Fast Delivery</span>
+                </div>
             </div>
+
+            <!-- Notification bell (defensive) -->
             {% if user.is_authenticated %}
-                <span>
-                    <span class="font-bold">{{ user.username }}</span>
-                    <span class="ml-1 text-xs px-2 py-1 bg-blue-900/70 rounded">{{ user.profile.role|title }}</span>
-                </span>
-                <form method='POST' action="{% url 'logout' %}" class="bg-yellow-600 hover:bg-orange-700 px-4 py-1 rounded text-white text-sm font-bold shadow inline">
-                    {% csrf_token %}
-                    <button type="submit" class="flex items-center gap-2 text-sm">
-                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1H4a1 1 0 00-1 1zM17 7v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1z"></path><path d="M5 11V21h14V11"></path></svg>
-                        <span>Logout</span>
-                    </button>
-                </form>
+                <div class="relative">
+                    {% url 'notifications' as notifications_url %}
+                    {% if notifications_url %}
+                        <a href="{{ notifications_url }}" class="p-2 rounded hover:bg-white/10" aria-label="Notifications">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            {% if user.profile and user.profile.unread_notifications_count %}
+                                <span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-red-800 bg-red-200 rounded-full">
+                                    {{ user.profile.unread_notifications_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- User info / auth actions -->
+            {% if user.is_authenticated %}
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex flex-col text-right mr-2">
+                        <span class="font-semibold text-white leading-tight">{{ user.get_full_name|default:user.username }}</span>
+                        <span class="text-xs text-white/80">{% if user.profile %}{{ user.profile.role|title }}{% endif %}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <img src="{% static 'img/avatar-placeholder.png' %}" alt="avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                    </div>
+
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="ml-2 bg-yellow-600 hover:bg-orange-700 px-3 py-1 rounded text-white text-sm font-bold shadow">Logout</button>
+                    </form>
+                </div>
             {% else %}
-                <a href="{% url 'login' %}" class="bg-yellow-600 hover:bg-orange-700 px-4 py-1 rounded text-white text-sm font-bold shadow">Login</a>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'login' %}" class="bg-yellow-600 hover:bg-orange-700 px-3 py-1 rounded text-white text-sm font-bold shadow">Login</a>
+                </div>
             {% endif %}
         </div>
     </header>
 
-    <!-- Alibaba-like Aside Sidebar -->
-    <aside class="fixed top-20 left-0 h-[calc(100vh-5rem)] w-64 bg-gradient-to-b from-yellow-100 via-orange-50 to-blue-100 text-blue-900 flex flex-col pt-8 z-40 shadow-lg border-r-2 border-yellow-300">
-        <div class="text-xl font-bold text-center mb-6 flex items-center justify-center gap-2">
-            <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/></svg>
+    <!-- Sidebar -->
+    <aside id="site-sidebar" class="fixed top-20 left-0 h-[calc(100vh-5rem)] w-64 bg-gradient-to-b from-yellow-100 via-orange-50 to-blue-100 text-blue-900 flex flex-col pt-8 z-40 shadow-lg border-r-2 border-yellow-300" role="navigation" aria-label="Site menu">
+        <div class="text-xl font-bold text-center mb-6 flex items-center justify-center gap-2 px-4">
+            <svg class="w-7 h-7 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/></svg>
             <span>Site Menu</span>
         </div>
-        <nav class="flex-grow">
-            <ul class="space-y-3 px-6">
+
+        <nav class="flex-grow overflow-y-auto">
+            <ul class="space-y-3 px-4">
                 {% if user.is_authenticated %}
-                    {% if user.profile.role == "engineer" %}
+                    {% if user.profile and user.profile.role == "engineer" %}
                         <li>
                             <a href="{% url 'engineer_dashboard' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'engineer_dashboard' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'engineer_dashboard' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 13h18M9 21V13H15V21M9 13V3H15V13"></path></svg>
                                 Dashboard
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'material_list' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'material_list' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'material_list' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7V4a1 1 0 011-1h2a1 1 0 011 1v3H4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4z"></path><path d="M4 7v10a1 1 0 001 1h2a1 1 0 001-1V7m7 0v10a1 1 0 001 1h2a1 1 0 001-1V7m-7 0v10M3 17h18"></path></svg>
                                 Browse Materials
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'order_list' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'order_list' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'order_list' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"></path></svg>
                                 My Orders
                             </a>
                         </li>
                         <li>
-                            <a href="{% url 'review_supplier' supplier_id=1 %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100">
-                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
-                                Review Supplier
+                            <a href="{% url 'deliveries_list' %}"
+                               class="flex items-center gap-3 py-2 px-3 rounded transition hover:bg-yellow-100">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M4 6h16M4 18h16"/></svg>
+                                My Deliveries
                             </a>
                         </li>
-                    {% elif user.profile.role == "supplier" %}
+
+                        {# Engineer reports link (defensive) #}
+                        {% url 'engineer_report' as engineer_report_url %}
+                        {% if engineer_report_url %}
+                        <li>
+                            <a href="{{ engineer_report_url }}"
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'engineer_report' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h18v4H3zM3 10h18v11H3z"/></svg>
+                                Reports
+                            </a>
+                        </li>
+                        {% endif %}
+
+                    {% elif user.profile and user.profile.role == "supplier" %}
                         <li>
                             <a href="{% url 'supplier_dashboard' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'supplier_dashboard' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'supplier_dashboard' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 13h18M9 21V13H15V21M9 13V3H15V13"></path></svg>
                                 Supplier Dashboard
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'supplier_materials' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'supplier_materials' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'supplier_materials' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7V4a1 1 0 011-1h2a1 1 0 011 1v3H4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4zm7 0V4a1 1 0 011-1h2a1 1 0 011 1v3h-4z"></path><path d="M4 7v10a1 1 0 001 1h2a1 1 0 001-1V7m7 0v10a1 1 0 001 1h2a1 1 0 001-1V7m-7 0v10M3 17h18"></path></svg>
                                 My Materials
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'supplier_orders' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'supplier_orders' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'supplier_orders' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"></path></svg>
                                 Orders Received
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'supplier_reviews' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'supplier_reviews' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'supplier_reviews' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
                                 Supplier Reviews
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'supplier_profile' %}"
-                               class="flex items-center gap-2 py-2 px-3 rounded transition
-                               {% if request.resolver_match.url_name == 'supplier_profile' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'supplier_profile' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
                                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
                                 My Profile
                             </a>
                         </li>
-                    {% else %}
-                        <!-- Optionally, add a default for unknown role -->
+
+                        {# Supplier reports link (defensive) #}
+                        {% url 'supplier_report' as supplier_report_url %}
+                        {% if supplier_report_url %}
                         <li>
-                            <a href="/" class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100">
+                            <a href="{{ supplier_report_url }}"
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'supplier_report' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h18v4H3zM3 10h18v11H3z"/></svg>
+                                Reports
+                            </a>
+                        </li>
+                        {% endif %}
+
+                    {% elif user.profile and user.profile.role == "delivery" %}
+                        <li>
+                            <a href="{% url 'delivery_dashboard' %}"
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'delivery_dashboard' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M4 6h16M4 18h16"/></svg>
+                                Delivery Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'deliveries_list' %}"
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'deliveries_list' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M4 6h16M4 18h16"/></svg>
+                                My Deliveries
+                            </a>
+                        </li>
+
+                        {# Delivery agent reports link (defensive) #}
+                        {% url 'delivery_report' as delivery_report_url %}
+                        {% if delivery_report_url %}
+                        <li>
+                            <a href="{{ delivery_report_url }}"
+                               class="flex items-center gap-3 py-2 px-3 rounded transition {% if request.resolver_match and request.resolver_match.url_name == 'delivery_report' %}bg-yellow-200 font-bold{% else %}hover:bg-yellow-100{% endif %}">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h18v4H3zM3 10h18v11H3z"/></svg>
+                                Reports
+                            </a>
+                        </li>
+                        {% endif %}
+
+                    {% else %}
+                        <li>
+                            <a href="/" class="flex items-center gap-3 py-2 px-3 rounded transition hover:bg-yellow-100">
                                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
                                 Home
                             </a>
@@ -154,39 +270,53 @@
                     {% endif %}
                 {% else %}
                     <li>
-                        <a href="{% url 'login' %}" class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100 font-bold">
-                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
+                        <a href="{% url 'login' %}" class="flex items-center gap-3 py-2 px-3 rounded transition hover:bg-yellow-100 font-bold">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
                             Login
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'accounts:register' %}" class="flex items-center gap-2 py-2 px-3 rounded transition hover:bg-yellow-100 font-bold">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>
-                            Register
                         </a>
                     </li>
                 {% endif %}
             </ul>
         </nav>
-        <div class="mt-auto pb-8 px-6 text-xs text-blue-800 opacity-70">
-            &copy; {{ now|date:"Y" }} BuildHub Kenya. All rights reserved.
+
+        <div class="mt-auto pb-6 px-4 text-xs text-blue-800 opacity-80">
+            &copy; {% now "Y" %} BuildHub Kenya. All rights reserved.
         </div>
     </aside>
 
-    <!-- Main Content Wrapper -->
-    <main class="ml-64 pt-24 px-10 min-h-[calc(100vh-5rem)] transition-all construction-bg">
+    <!-- Main content wrapper -->
+    <main id="main-content" class="ml-64 pt-24 px-6 md:px-10 min-h-[calc(100vh-5rem)] transition-all construction-bg" role="main">
         {% if messages %}
-            <div class="space-y-3">
+            <div class="space-y-3 mb-4">
                 {% for message in messages %}
-                    <div class="px-4 py-3 rounded bg-green-100 text-green-900 font-medium shadow">
+                    <div class="px-4 py-3 rounded {{ message.tags|default:'bg-green-100 text-green-900' }}">
                         {{ message }}
                     </div>
                 {% endfor %}
             </div>
         {% endif %}
-        {% block content %}
-        {% endblock %}
+
+        {% block breadcrumbs %}{% endblock %}
+
+        {% block content %}{% endblock %}
     </main>
-    {% block extra_js %}{% endblock %}
+
+    {% block extra_js %}
+    <script>
+        (function () {
+            const toggle = document.getElementById('sidebar-toggle');
+            const body = document.body;
+            if (!toggle) return;
+            toggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                body.classList.toggle('sidebar-collapsed');
+
+                // update aria-expanded
+                const expanded = toggle.getAttribute('aria-expanded') === 'true';
+                toggle.setAttribute('aria-expanded', String(!expanded));
+            });
+        })();
+    </script>
+    {% endblock %}
 </body>
 </html>

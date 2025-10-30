@@ -16,6 +16,7 @@
            Add New Material
         </a>
     </div>
+
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {% for material in materials %}
         <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-2xl shadow-xl border border-yellow-100 p-5 flex flex-col hover:shadow-2xl transition">
@@ -29,10 +30,28 @@
                         </svg>
                     </div>
                 {% endif %}
-                <span class="absolute top-2 left-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider shadow">{{ material.category }}</span>
+
+                <span class="absolute top-2 left-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider shadow">
+                    {# Prefer relational primary_category, then first categories M2M, then legacy category text, then fallback #}
+                    {% if material.primary_category %}
+                        {{ material.primary_category.name }}
+                    {% elif material.categories.all %}
+                        {% for c in material.categories.all %}
+                            {% if forloop.first %}
+                                {{ c.name }}
+                            {% endif %}
+                        {% endfor %}
+                    {% elif material.category %}
+                        {{ material.category }}
+                    {% else %}
+                        Uncategorized
+                    {% endif %}
+                </span>
             </div>
+
             <h2 class="text-xl font-extrabold mb-1 text-yellow-700">{{ material.name }}</h2>
             <div class="text-sm text-gray-600 mb-2 font-medium">{{ material.description|truncatewords:15 }}</div>
+
             <div class="mt-2 mb-2 flex items-center justify-between">
                 <span class="text-lg text-orange-700 font-extrabold">KSh {{ material.unit_price }}</span>
                 <span class="inline-flex items-center gap-1 text-green-600 font-bold text-sm">
@@ -40,6 +59,7 @@
                     {{ material.stock_level }} in stock
                 </span>
             </div>
+
             <div class="flex gap-2 mt-auto">
                 <a href="{% url 'supplier_material_detail' material.id %}" class="inline-flex items-center gap-1 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-xs">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12H3m0 0l4-4m-4 4l4 4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

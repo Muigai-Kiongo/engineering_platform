@@ -2,49 +2,213 @@
 {% block content %}
 <div class="max-w-xl mx-auto mt-12">
     <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-8">
-        <h1 class="text-2xl font-extrabold text-yellow-700 mb-8 flex items-center gap-3">
+        <h1 class="text-2xl font-extrabold text-yellow-700 mb-4 flex items-center gap-3">
             <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
             </svg>
             Add New Material
+            {% if supplier %}
+                <span class="ml-3 text-sm text-gray-600">for <strong class="text-orange-700">{{ supplier.company_name }}</strong></span>
+            {% endif %}
         </h1>
-        <form method="post" enctype="multipart/form-data" class="space-y-5">
+
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="px-4 py-3 rounded-lg bg-white border border-yellow-100 shadow text-sm {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="space-y-5" id="material-form" novalidate>
             {% csrf_token %}
             {{ form.non_field_errors }}
+
             <div>
-                <label for="id_name" class="block font-bold text-yellow-700 mb-2">Name</label>
+                <label for="{{ form.name.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Name</label>
                 {{ form.name }}
+                {{ form.name.errors }}
             </div>
-            <div>
-                <label for="id_category" class="block font-bold text-yellow-700 mb-2">Category</label>
-                {{ form.category }}
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.sku.id_for_label }}" class="block font-bold text-yellow-700 mb-2">SKU (optional)</label>
+                    {{ form.sku }}
+                    {% if form.sku.help_text %}<p class="text-xs text-gray-400 mt-1">{{ form.sku.help_text }}</p>{% endif %}
+                    <p id="sku-hint" class="text-xs text-gray-500 mt-1">Leave blank to auto-generate an internal SKU.</p>
+                    {{ form.sku.errors }}
+                </div>
+                <div>
+                    <label for="{{ form.unit.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Unit</label>
+                    {{ form.unit }}
+                    {{ form.unit.errors }}
+                </div>
             </div>
+
             <div>
-                <label for="id_description" class="block font-bold text-yellow-700 mb-2">Description</label>
+                <label for="{{ form.primary_category.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Primary Category (optional)</label>
+                {{ form.primary_category }}
+                <p id="primary-warning" class="text-xs text-red-600 mt-1 hidden">
+                    Primary category is not included in the selected categories.
+                </p>
+                {{ form.primary_category.errors }}
+            </div>
+
+            <div>
+                <label for="{{ form.categories.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Categories (select one or more)</label>
+                {{ form.categories }}
+                {% if form.categories.help_text %}<p class="text-xs text-gray-400 mt-1">{{ form.categories.help_text }}</p>{% endif %}
+                <p id="categories-count" class="text-xs text-gray-500 mt-1">0 selected</p>
+                {{ form.categories.errors }}
+            </div>
+
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Description</label>
                 {{ form.description }}
+                {{ form.description.errors }}
             </div>
+
             <div class="grid grid-cols-2 gap-6">
                 <div>
-                    <label for="id_unit_price" class="block font-bold text-yellow-700 mb-2">Unit Price (KSh)</label>
+                    <label for="{{ form.unit_price.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Unit Price (KSh)</label>
                     {{ form.unit_price }}
+                    {{ form.unit_price.errors }}
+                    <p id="price-format" class="text-xs text-gray-500 mt-1">0.00</p>
                 </div>
                 <div>
-                    <label for="id_stock_level" class="block font-bold text-yellow-700 mb-2">Stock Level</label>
+                    <label for="{{ form.stock_level.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Stock Level</label>
                     {{ form.stock_level }}
+                    {{ form.stock_level.errors }}
                 </div>
             </div>
+
             <div>
-                <label for="id_image" class="block font-bold text-yellow-700 mb-2">Image</label>
-                {{ form.image }}
+                <label for="{{ form.image.id_for_label }}" class="block font-bold text-yellow-700 mb-2">Image</label>
+                <div class="flex items-center gap-4">
+                    <div>
+                        {{ form.image }}
+                        {{ form.image.errors }}
+                        <p class="text-xs text-gray-400 mt-1">PNG, JPG. Max recommended size: 2MB.</p>
+                    </div>
+                    <div id="image-preview" class="w-28 h-20 bg-yellow-100 rounded border border-yellow-200 flex items-center justify-center overflow-hidden">
+                        <svg class="w-8 h-8 text-yellow-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="id_is_active" class="block font-bold text-yellow-700 mb-2">Active?</label>
+
+            <div class="flex items-center gap-3">
                 {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}" class="font-medium text-yellow-700">Active?</label>
+                {{ form.is_active.errors }}
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white py-2 rounded-lg font-bold shadow-lg border border-yellow-300 transition">
-                Add Material
-            </button>
+
+            <div>
+                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white py-2 rounded-lg font-bold shadow-lg border border-yellow-300 transition">
+                    Add Material
+                </button>
+            </div>
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    // Helper to safely query by field id
+    function el(id) { return document.getElementById(id); }
+
+    // IDs are generated by Django forms: id_<fieldname>
+    const categoriesField = el('{{ form.categories.id_for_label }}');
+    const primaryField = el('{{ form.primary_category.id_for_label }}');
+    const categoriesCount = el('categories-count');
+    const primaryWarning = el('primary-warning');
+    const skuInput = el('{{ form.sku.id_for_label }}');
+    const imageInput = el('{{ form.image.id_for_label }}');
+    const imagePreview = el('image-preview');
+    const unitPriceField = el('{{ form.unit_price.id_for_label }}');
+    const priceFormat = el('price-format');
+    const submitBtn = el('submit-btn');
+
+    // Update categories count
+    function updateCategoriesInfo() {
+        if (!categoriesField) return;
+        const selected = Array.from(categoriesField.options).filter(opt => opt.selected).length;
+        categoriesCount.textContent = selected + ' selected';
+
+        // if primary selected, ensure it's among categories
+        if (primaryField && primaryField.value) {
+            const primaryVal = primaryField.value;
+            const inSelected = Array.from(categoriesField.options).some(opt => opt.selected && opt.value === primaryVal);
+            if (!inSelected) {
+                primaryWarning.classList.remove('hidden');
+            } else {
+                primaryWarning.classList.add('hidden');
+            }
+        }
+    }
+
+    if (categoriesField) {
+        updateCategoriesInfo();
+        categoriesField.addEventListener('change', updateCategoriesInfo);
+    }
+    if (primaryField) {
+        primaryField.addEventListener('change', updateCategoriesInfo);
+    }
+
+    // Image preview
+    if (imageInput && imagePreview) {
+        imageInput.addEventListener('change', function (ev) {
+            const file = imageInput.files && imageInput.files[0];
+            if (!file) {
+                // reset preview
+                imagePreview.innerHTML = '<svg class="w-8 h-8 text-yellow-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/></svg>';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imagePreview.innerHTML = '<img src="' + e.target.result + '" alt="preview" class="object-cover w-full h-full">';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Live price formatting
+    if (unitPriceField && priceFormat) {
+        function formatPrice() {
+            const raw = parseFloat(unitPriceField.value);
+            if (isNaN(raw)) {
+                priceFormat.textContent = '0.00';
+            } else {
+                priceFormat.textContent = raw.toFixed(2);
+            }
+        }
+        formatPrice();
+        unitPriceField.addEventListener('input', formatPrice);
+    }
+
+    // Optional: basic client-side validation to avoid obvious submissions
+    document.getElementById('material-form').addEventListener('submit', function (e) {
+        // Example: ensure unit_price >= 0 and stock_level >= 0
+        const price = parseFloat(unitPriceField ? unitPriceField.value : 0) || 0;
+        const stockField = el('{{ form.stock_level.id_for_label }}');
+        const stock = parseInt(stockField ? stockField.value : 0, 10) || 0;
+        if (price < 0 || stock < 0) {
+            e.preventDefault();
+            alert('Please enter valid non-negative values for price and stock.');
+            return false;
+        }
+        // ensure primary category warning not active
+        if (primaryWarning && !primaryWarning.classList.contains('hidden')) {
+            if (!confirm('Primary category is not among selected categories. Continue anyway?')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+        // allow the server to run full validation
+        return true;
+    });
+
+})();
+</script>
 {% endblock %}

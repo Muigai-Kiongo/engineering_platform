@@ -1,47 +1,120 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-2xl mx-auto mt-12">
-    <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-blue-50 rounded-xl shadow-xl border border-yellow-200 p-8">
-        <div class="flex items-center gap-3 mb-6">
-            <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full border-2 border-yellow-300 shadow h-10 w-10">
-                <svg class="h-6 w-6 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path d="M3 17v-2a9 9 0 0118 0v2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 3v14" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M7.5 17.5l.5-7" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16.5 17.5l-.5-7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </span>
-            <h1 class="text-2xl font-extrabold text-yellow-700 drop-shadow-lg tracking-wide">Order Material</h1>
+<div class="max-w-3xl mx-auto mt-12">
+  <div class="bg-white rounded-xl shadow p-8">
+    <div class="flex items-start gap-6 mb-6">
+      <div class="w-36">
+        {% if material.image %}
+          <img src="{{ material.image.url }}" alt="{{ material.name }}" class="rounded-md object-cover h-32 w-32">
+        {% else %}
+          <div class="h-32 w-32 bg-yellow-100 rounded-md flex items-center justify-center">
+            <svg class="w-10 h-10 text-yellow-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 2l2 7h7l-6 5 2 7-6-5-6 5 2-7-6-5h7z"/>
+            </svg>
+          </div>
+        {% endif %}
+      </div>
+      <div class="flex-1">
+        <h2 class="text-2xl font-bold text-yellow-700">{{ material.name }}</h2>
+        <p class="text-sm text-gray-600 mb-2">{{ material.description }}</p>
+        <div class="flex items-center gap-4">
+          <span class="text-lg font-extrabold text-orange-700">KSh <span id="unit-price">{{ material.unit_price }}</span></span>
+          <span class="text-sm text-green-600 font-semibold"><span id="stock-level">{{ material.stock_level }}</span> in stock</span>
         </div>
-        <div class="mb-6 bg-white rounded-lg border border-yellow-100 shadow p-5">
-            <div class="mb-2 flex items-center gap-2">
-                <span class="font-semibold text-blue-900">Material:</span>
-                <span class="font-bold text-orange-700">{{ material.name }}</span>
-            </div>
-            <div class="mb-2 flex items-center gap-2">
-                <span class="font-semibold text-blue-900">Supplier:</span>
-                <span class="font-bold text-orange-700">{{ supplier.company_name }}</span>
-            </div>
-            <div class="mb-2 flex items-center gap-2">
-                <span class="font-semibold text-blue-900">Unit Price:</span>
-                <span class="font-bold text-orange-700">KSh {{ material.unit_price }}</span>
-            </div>
-            <div class="mb-2 flex items-center gap-2">
-                <span class="font-semibold text-blue-900">Stock Available:</span>
-                <span class="font-extrabold text-green-600">{{ material.stock_level }}</span>
-            </div>
-        </div>
-        <form method="post" class="mt-4">
-            {% csrf_token %}
-            <div class="mb-6">
-                {{ form.non_field_errors }}
-                <label for="id_quantity" class="block font-bold text-yellow-700 mb-2 tracking-wide">Quantity</label>
-                {{ form.quantity }}
-            </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 hover:from-orange-500 hover:to-blue-800 text-white py-2 rounded-lg font-bold shadow-lg border border-yellow-300 transition">
-                Place Order
-            </button>
-        </form>
+        <p class="text-xs text-gray-400 mt-2">Supplier: {{ supplier.company_name }}</p>
+      </div>
     </div>
+
+    {% if messages %}
+      <div class="space-y-2 mb-4">
+        {% for message in messages %}
+          <div class="px-4 py-2 rounded {{ message.tags|default:'bg-blue-50 text-blue-900' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4" id="place-order-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-1">Material</label>
+        {{ form.material }}
+        {% if form.material.errors %}<p class="text-red-600 text-sm">{{ form.material.errors }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-1">Quantity</label>
+        {{ form.quantity }}
+        {% if form.quantity.errors %}<p class="text-red-600 text-sm">{{ form.quantity.errors }}</p>{% endif %}
+        <p class="text-xs text-gray-500 mt-1">Total: KSh <span id="order-total">0.00</span></p>
+        <p id="quantity-warning" class="text-xs text-red-600 mt-1 hidden">Requested quantity exceeds available stock.</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="submit" class="bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-900 text-white px-4 py-2 rounded font-semibold" id="place-order-btn">
+          Place Order
+        </button>
+        <a href="{% url 'material_detail' material.id %}" class="text-sm text-gray-600 hover:underline">Back to material</a>
+      </div>
+    </form>
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const unitPrice = parseFloat("{{ material.unit_price }}") || 0;
+  const stock = parseInt("{{ material.stock_level }}") || 0;
+
+  // Find the rendered quantity input (bound field)
+  const qtyInput = document.querySelector('#{{ form.quantity.id_for_label }}') || document.querySelector('input[name="{{ form.quantity.html_name }}"]');
+  const totalEl = document.getElementById('order-total');
+  const stockEl = document.getElementById('stock-level');
+  const warningEl = document.getElementById('quantity-warning');
+  const submitBtn = document.getElementById('place-order-btn');
+
+  // If we found the input, set min/max attributes and initial total
+  if (qtyInput) {
+    // ensure numeric input constraints
+    qtyInput.setAttribute('min', '1');
+    qtyInput.setAttribute('max', String(stock));
+    qtyInput.setAttribute('step', '1');
+
+    // helper to update total & validation
+    function update() {
+      let q = parseInt(qtyInput.value, 10);
+      if (isNaN(q) || q < 1) q = 1;
+      // compute total
+      const total = (unitPrice * q).toFixed(2);
+      totalEl.textContent = total;
+
+      // validation: disable submit if requested > stock
+      if (q > stock) {
+        warningEl.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+      } else {
+        warningEl.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+      }
+    }
+
+    // initial update
+    update();
+
+    // attach listeners
+    qtyInput.addEventListener('input', update);
+    qtyInput.addEventListener('change', update);
+  } else {
+    // fallback: if quantity input not found, compute total using any value passed in template
+    totalEl.textContent = (unitPrice * (parseInt("{{ form.quantity.value|default:'1' }}") || 1)).toFixed(2);
+  }
+
+  // show stock as number
+  if (stockEl) stockEl.textContent = stock;
+});
+</script>
 {% endblock %}

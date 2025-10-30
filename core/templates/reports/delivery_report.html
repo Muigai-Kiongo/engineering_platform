@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold text-yellow-700">Delivery Agent Report</h1>
+    <div>
+      <a href="{{ request.path }}?format=csv{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="px-3 py-2 bg-blue-700 text-white rounded">Download CSV</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Assigned</div>
+      <div class="text-2xl font-bold text-yellow-700">{{ total_assigned }}</div>
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">In Transit</div>
+      <div class="text-2xl font-bold text-blue-700">{{ in_transit }}</div>
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Delivered</div>
+      <div class="text-2xl font-bold text-green-700">{{ delivered }}</div>
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Pending</div>
+      <div class="text-2xl font-bold text-gray-700">{{ pending }}</div>
+    </div>
+  </div>
+
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="font-bold mb-2">Recent Deliveries</h2>
+    <ul class="divide-y">
+      {% for d in recent %}
+        <li class="py-2 flex justify-between">
+          <div>
+            #{{ d.id }} — Order #
+            {% if d.order %}
+              {{ d.order.id }}
+            {% else %}
+              —
+            {% endif %}
+            • {{ d.delivery_location|default:"—" }}
+          </div>
+          <div class="text-sm text-gray-500">
+            {% if d.delivered_at %}Delivered {{ d.delivered_at|date:"M d, Y H:i" }}
+            {% elif d.dispatched_at %}Dispatched {{ d.dispatched_at|date:"M d, Y H:i" }}
+            {% else %}Pending{% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

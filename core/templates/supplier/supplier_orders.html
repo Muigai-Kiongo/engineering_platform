@@ -26,8 +26,43 @@
                     {% for order in orders %}
                     <tr class="hover:bg-yellow-100 transition">
                         <td class="px-4 py-2 text-sm font-bold text-yellow-700">#{{ order.id }}</td>
-                        <td class="px-4 py-2 text-sm">{{ order.material.name }}</td>
-                        <td class="px-4 py-2 text-sm">{{ order.engineer.user.username }}</td>
+                        <td class="px-4 py-2 text-sm flex items-center gap-2">
+                            {% if order.material and order.material.image %}
+                                <img src="{{ order.material.image.url }}" alt="{{ order.material.name }}" class="w-8 h-8 rounded border border-yellow-200 shadow-sm">
+                            {% endif %}
+                            <div>
+                                <div class="font-medium">
+                                    {% if order.material %}
+                                        {{ order.material.name }}
+                                    {% else %}
+                                        Material
+                                    {% endif %}
+                                </div>
+                                {# optional small meta line (category or unit) - safe access #}
+                                <div class="text-xs text-gray-400">
+                                    {% if order.material %}
+                                        {% if order.material.primary_category %}
+                                            {{ order.material.primary_category.name }}
+                                        {% elif order.material.categories.all %}
+                                            {% for c in order.material.categories.all %}
+                                                {% if forloop.first %}{{ c.name }}{% endif %}
+                                            {% endfor %}
+                                        {% elif order.material.category %}
+                                            {{ order.material.category }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-2 text-sm">
+                            {% if order.engineer and order.engineer.user %}
+                                {{ order.engineer.user.username }}
+                            {% else %}
+                                Engineer
+                            {% endif %}
+                        </td>
                         <td class="px-4 py-2 text-sm">{{ order.quantity }}</td>
                         <td class="px-4 py-2 text-sm font-semibold text-blue-900">KSh {{ order.total_price }}</td>
                         <td class="px-4 py-2 text-sm">
@@ -35,6 +70,7 @@
                                 {% if order.status == 'delivered' %}bg-green-100 text-green-800
                                 {% elif order.status == 'dispatched' %}bg-blue-100 text-blue-800
                                 {% elif order.status == 'confirmed' %}bg-yellow-100 text-yellow-800
+                                {% elif order.status == 'cancelled' %}bg-gray-100 text-gray-800
                                 {% else %}bg-gray-100 text-gray-800{% endif %}">
                                 {{ order.status|title }}
                             </span>

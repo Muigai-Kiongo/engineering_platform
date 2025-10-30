@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8 space-y-6">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <span class="inline-flex items-center justify-center bg-yellow-100 rounded-full h-14 w-14">
+        <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M3 12h18M4 6h16M4 18h16"/>
+        </svg>
+      </span>
+      <div>
+        <h1 class="text-2xl font-bold text-yellow-700">Delivery Dashboard</h1>
+        <p class="text-sm text-gray-500">Assigned deliveries and quick actions</p>
+      </div>
+    </div>
+
+    <div>
+      <a href="{% url 'deliveries_list' %}" class="px-3 py-2 bg-blue-700 text-white rounded">My Deliveries</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white rounded p-4 shadow border border-yellow-100">
+      <div class="text-xs text-gray-500">Assigned</div>
+      <div class="text-2xl font-bold text-yellow-700">{{ total_assigned|default:0 }}</div>
+    </div>
+
+    <div class="bg-white rounded p-4 shadow border border-yellow-100">
+      <div class="text-xs text-gray-500">In transit</div>
+      <div class="text-2xl font-bold text-blue-700">{{ in_transit|default:0 }}</div>
+    </div>
+
+    <div class="bg-white rounded p-4 shadow border border-yellow-100">
+      <div class="text-xs text-gray-500">Delivered</div>
+      <div class="text-2xl font-bold text-green-700">{{ delivered|default:0 }}</div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded p-4 shadow border border-yellow-100">
+    <h2 class="font-bold text-blue-900">Recent Assigned Deliveries</h2>
+    {% if recent_deliveries %}
+      <ul class="divide-y mt-3">
+        {% for d in recent_deliveries %}
+          <li class="py-3 flex items-center justify-between">
+            <div class="min-w-0">
+              <div class="font-semibold text-sm">#{{ d.order.id }} — {% if d.order.material %}{{ d.order.material.name }}{% else %}Material{% endif %}</div>
+              <div class="text-xs text-gray-400 truncate">To: {% if d.order.engineer and d.order.engineer.user %}{{ d.order.engineer.user.username }}{% else %}Engineer{% endif %} • {{ d.delivery_location|default:'—' }}</div>
+            </div>
+            <div class="ml-4 text-right">
+              <a href="{% url 'delivery_detail' d.pk %}" class="text-xs text-blue-700 hover:underline">Open</a>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="text-gray-500 py-6 text-center">No assigned deliveries.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

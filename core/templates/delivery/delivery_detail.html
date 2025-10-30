@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+  <div class="bg-white rounded p-6 shadow border border-yellow-100">
+    <div class="flex items-start gap-6">
+      <div class="flex-1">
+        <h2 class="text-xl font-bold text-yellow-700">Delivery #{{ delivery.pk }}{% if order %} — Order #{{ order.id }}{% endif %}</h2>
+
+        <div class="mt-2 text-sm text-gray-600">
+          <div>Material: {% if order and order.material %}{{ order.material.name }}{% else %}Material (deleted){% endif %}</div>
+          <div>Customer: {% if order and order.engineer and order.engineer.user %}{{ order.engineer.user.username }}{% else %}Engineer{% endif %}</div>
+          <div class="mt-1">Delivery address: {{ delivery.delivery_location|default:'—' }}</div>
+        </div>
+
+        <div class="mt-4">
+          <h3 class="font-semibold">Delivery status:
+            <span class="font-bold">
+              {% if delivery.delivered_at %}
+                Delivered
+              {% elif delivery.dispatched_at %}
+                In Transit
+              {% else %}
+                Pending
+              {% endif %}
+            </span>
+          </h3>
+
+          {% if delivery.dispatched_at %}
+            <div class="text-xs text-gray-400">Dispatched: {{ delivery.dispatched_at|date:"M d, Y H:i" }}</div>
+          {% endif %}
+          {% if delivery.delivered_at %}
+            <div class="text-xs text-gray-400">Delivered: {{ delivery.delivered_at|date:"M d, Y H:i" }}</div>
+          {% endif %}
+        </div>
+
+        {% if delivery.notes %}
+          <div class="mt-4">
+            <h4 class="font-semibold">Notes</h4>
+            <pre class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded">{{ delivery.notes }}</pre>
+          </div>
+        {% endif %}
+      </div>
+
+      <aside class="w-64">
+        <form method="post" action="{% url 'delivery_update_status' delivery.pk %}">
+          {% csrf_token %}
+          <label class="text-xs text-gray-600">Update status</label>
+
+          {% if next_allowed and next_allowed|length > 0 %}
+            <select name="action" class="w-full px-3 py-2 rounded border mt-1">
+              {% for action in next_allowed %}
+                <option value="{{ action }}">{{ action|title }}</option>
+              {% endfor %}
+            </select>
+            <label class="text-xs text-gray-600 mt-2 block">Location (optional)</label>
+            <input name="current_location" class="w-full px-3 py-2 rounded border mt-1" />
+
+            <label class="text-xs text-gray-600 mt-2 block">Notes (optional)</label>
+            <textarea name="notes" class="w-full px-3 py-2 rounded border mt-1" rows="3"></textarea>
+
+            <button type="submit" class="mt-3 w-full bg-gradient-to-r from-orange-400 to-blue-700 text-white px-3 py-2 rounded font-bold">Update</button>
+          {% else %}
+            <div class="mt-2 text-sm text-gray-500">No actions available for this delivery.</div>
+            <button type="button" disabled class="mt-3 w-full bg-gray-200 text-gray-600 px-3 py-2 rounded font-bold">No actions</button>
+          {% endif %}
+        </form>
+
+        <a href="{% url 'deliveries_list' %}" class="mt-3 inline-block text-xs text-blue-700 hover:underline">Back to deliveries</a>
+      </aside>
+    </div>
+  </div>
+</div>
+{% endblock %}
